@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Machine Learning Explorer</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f0;
+    --bg-tertiary: #eeede8;
+    --bg-info: #e6f1fb;
+    --bg-success: #eaf3de;
+    --bg-warning: #faeeda;
+    --bg-danger: #fcebeb;
+    --text-primary: #1a1a18;
+    --text-secondary: #5f5e5a;
+    --text-tertiary: #888780;
+    --text-info: #185fa5;
+    --text-success: #3b6d11;
+    --text-warning: #854f0b;
+    --text-danger: #a32d2d;
+    --border-tertiary: rgba(26,26,24,0.15);
+    --border-secondary: rgba(26,26,24,0.3);
+    --border-primary: rgba(26,26,24,0.4);
+    --border-info: #b5d4f4;
+    --border-success: #c0dd97;
+    --border-warning: #fac775;
+    --border-danger: #f7c1c1;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1e1e1c;
+      --bg-secondary: #2a2a27;
+      --bg-tertiary: #232320;
+      --bg-info: #042c53;
+      --bg-success: #173404;
+      --bg-warning: #412402;
+      --bg-danger: #501313;
+      --text-primary: #f0ede8;
+      --text-secondary: #b4b2a9;
+      --text-tertiary: #888780;
+      --text-info: #85b7eb;
+      --text-success: #97c459;
+      --text-warning: #ef9f27;
+      --text-danger: #f09595;
+      --border-tertiary: rgba(240,237,232,0.15);
+      --border-secondary: rgba(240,237,232,0.3);
+      --border-primary: rgba(240,237,232,0.4);
+      --border-info: #0c447c;
+      --border-success: #27500a;
+      --border-warning: #633806;
+      --border-danger: #791f1f;
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 720px;
+  }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+  .tab-bar { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+
+  .tab-btn {
+    padding: 8px 16px;
+    border-radius: var(--radius-lg);
+    border: 0.5px solid var(--border-secondary);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { background: var(--bg-secondary); }
+  .tab-btn.active {
+    background: var(--bg-info);
+    color: var(--text-info);
+    border-color: var(--border-info);
+    font-weight: 500;
+  }
+
+  .panel { display: none; }
+  .panel.on { display: block; }
+
+  .hero {
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+    border: 0.5px solid;
+  }
+
+  .card {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-tertiary);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  h3 { font-size: 16px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; }
+  p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: var(--radius-md);
+    margin: 2px;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-secondary);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: all 0.12s;
+  }
+  .btn:hover { background: var(--bg-primary); }
+
+  .msg {
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .msg-ok  { background: #EAF3DE; color: #3B6D11; }
+  .msg-bad { background: #FCEBEB; color: #A32D2D; }
+  .msg-muted { background: var(--bg-secondary); color: var(--text-secondary); }
+
+  @media (prefers-color-scheme: dark) {
+    .msg-ok  { background: #173404; color: #97c459; }
+    .msg-bad { background: #501313; color: #f09595; }
+  }
+
+  .quiz-opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-secondary);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    font-family: var(--font-sans);
+    transition: all 0.12s;
+  }
+  .quiz-opt:hover:not([disabled]) { background: var(--bg-secondary); }
+  .quiz-opt.correct { background: #EAF3DE; border-color: #97C459; color: #3B6D11; }
+  .quiz-opt.wrong   { background: #FCEBEB; border-color: #F09595; color: #A32D2D; }
+
+  @media (prefers-color-scheme: dark) {
+    .quiz-opt.correct { background: #173404; border-color: #27500a; color: #97c459; }
+    .quiz-opt.wrong   { background: #501313; border-color: #791f1f; color: #f09595; }
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border-secondary);
+    display: inline-block;
+    margin-right: 5px;
+    transition: background 0.2s;
+  }
+  .dot.done   { background: #1D9E75; border-color: #5DCAA5; }
+  .dot.active { background: #378ADD; border-color: #85B7EB; }
+
+  .email-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 8px;
+    border-bottom: 0.5px solid var(--border-tertiary);
+    border-radius: var(--radius-md);
+  }
+  .email-row:last-child { border-bottom: none; }
+  .email-info { flex: 1; min-width: 0; }
+  .email-sender { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+  .email-subject { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge { font-size: 11px; padding: 3px 9px; border-radius: var(--radius-md); font-weight: 500; white-space: nowrap; }
+
+  .animal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
+  .animal-card {
+    border-radius: var(--radius-md);
+    border: 2px solid transparent;
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--bg-secondary);
+  }
+  .animal-card:hover { border-color: var(--border-secondary); }
+  .animal-emoji { font-size: 26px; display: block; margin-bottom: 3px; }
+  .animal-name  { font-size: 11px; color: var(--text-secondary); }
+
+  .rl-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 12px 0; }
+  .rl-cell {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    border: 0.5px solid var(--border-tertiary);
+    background: var(--bg-secondary);
+  }
+  .rl-cell.player  { background: #E6F1FB; border-color: #B5D4F4; }
+  .rl-cell.goal    { background: #EAF3DE; border-color: #C0DD97; }
+  .rl-cell.wall    { background: #F1EFE8; border-color: #D3D1C7; }
+  .rl-cell.trap    { background: #FCEBEB; border-color: #F7C1C1; }
+  .rl-cell.visited { background: #EEEDFE; border-color: #CECBF6; }
+
+  @media (prefers-color-scheme: dark) {
+    .rl-cell.player  { background: #042c53; border-color: #0c447c; }
+    .rl-cell.goal    { background: #173404; border-color: #27500a; }
+    .rl-cell.wall    { background: #2c2c2a; border-color: #444441; }
+    .rl-cell.trap    { background: #501313; border-color: #791f1f; }
+    .rl-cell.visited { background: #26215c; border-color: #3c3489; }
+  }
+
+  .dir-wrap { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; }
+  .dir-row  { display: flex; gap: 4px; }
+  .dir-btn {
+    width: 44px; height: 44px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-secondary);
+    background: var(--bg-primary);
+    cursor: pointer;
+    font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-sans);
+    transition: transform 0.1s;
+    color: var(--text-primary);
+  }
+  .dir-btn:hover  { background: var(--bg-secondary); transform: scale(1.05); }
+  .dir-btn:active { transform: scale(0.95); }
+
+  .score-bar { height: 8px; border-radius: 4px; background: var(--bg-secondary); overflow: hidden; margin: 8px 0; }
+  .score-fill { height: 100%; border-radius: 4px; background: #1D9E75; transition: width 0.3s; }
+  .score-fill.neg { background: #E24B4A; }
+
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 0;
+    border-bottom: 0.5px solid var(--border-tertiary);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h2 class="sr-only">Interactive machine learning explorer covering supervised, unsupervised, and reinforcement learning with hands-on examples and a quiz.</h2>
+
+<div class="tab-bar" id="tabs"></div>
+
+<div id="panel-supervised" class="panel">
+  <div class="hero" style="background:#E6F1FB;border-color:#B5D4F4">
+    <div style="font-size:17px;font-weight:500;color:#0C447C;margin-bottom:4px">Supervised learning — learning with a teacher</div>
+    <div style="font-size:14px;color:#185FA5">The AI learns from labeled examples — like studying flashcards that already have the answers written on the back.</div>
+  </div>
+  <div class="card">
+    <h3>Try it: spam detector</h3>
+    <p style="margin-bottom:10px">The AI was trained on these labeled emails. Click "Reveal AI predictions" to see what it decides about new emails — and why.</p>
+    <div style="background:var(--bg-secondary);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:12px">
+      <div style="font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:6px">Training data the AI learned from:</div>
+      <span class="tag" style="background:#EAF3DE;color:#3B6D11">Inbox — "Your invoice is ready"</span>
+      <span class="tag" style="background:#EAF3DE;color:#3B6D11">Inbox — "Meeting at 3pm"</span>
+      <span class="tag" style="background:#FCEBEB;color:#A32D2D">Spam — "WIN $1000 FREE!!!"</span>
+      <span class="tag" style="background:#FCEBEB;color:#A32D2D">Spam — "Cheap meds no prescription"</span>
+      <span class="tag" style="background:#EAF3DE;color:#3B6D11">Inbox — "Can you review my code?"</span>
+    </div>
+    <div style="font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:6px">New emails to classify:</div>
+    <div id="email-list">
+      <div class="email-row"><div style="width:32px;height:32px;border-radius:50%;background:#E6F1FB;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">✉</div><div class="email-info"><div class="email-sender">Alex from work</div><div class="email-subject">Hey, are you free for lunch on Friday?</div></div><span id="eb0" class="badge" style="visibility:hidden">?</span></div>
+      <div class="email-row"><div style="width:32px;height:32px;border-radius:50%;background:#FCEBEB;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">✉</div><div class="email-info"><div class="email-sender">NO-REPLY@prize-winner2024.net</div><div class="email-subject">You WON a FREE iPhone! Claim NOW!!!</div></div><span id="eb1" class="badge" style="visibility:hidden">?</span></div>
+      <div class="email-row"><div style="width:32px;height:32px;border-radius:50%;background:#FCEBEB;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">✉</div><div class="email-info"><div class="email-sender">deals@super-discounts.info</div><div class="email-subject">Act fast! 90% off everything — limited time!</div></div><span id="eb2" class="badge" style="visibility:hidden">?</span></div>
+      <div class="email-row"><div style="width:32px;height:32px;border-radius:50%;background:#EAF3DE;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">✉</div><div class="email-info"><div class="email-sender">Bank of Example</div><div class="email-subject">Your monthly statement is now available</div></div><span id="eb3" class="badge" style="visibility:hidden">?</span></div>
+    </div>
+    <div id="email-msg" class="msg msg-muted" style="display:none"></div>
+    <button class="btn" id="email-btn" style="margin-top:12px;width:100%" onclick="revealEmails()">Show AI predictions</button>
+  </div>
+  <div class="card">
+    <h3>How it works</h3>
+    <div class="grid2">
+      <div><div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:3px">Step 1 — label examples</div><p>Humans mark thousands of emails as spam or not. This labeled data is the AI's training set.</p></div>
+      <div><div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:3px">Step 2 — find patterns</div><p>The AI notices which words appear in spam vs. inbox — like "FREE", "!!!", or suspicious sender addresses.</p></div>
+      <div><div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:3px">Step 3 — predict</div><p>On new unseen emails, the AI applies what it learned to make a prediction — even if it never saw that exact email.</p></div>
+      <div><div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:3px">Real-world uses</div><p>Medical diagnosis, voice recognition, image classification, house price prediction.</p></div>
+    </div>
+  </div>
+</div>
+
+<div id="panel-unsupervised" class="panel">
+  <div class="hero" style="background:#E1F5EE;border-color:#9FE1CB">
+    <div style="font-size:17px;font-weight:500;color:#085041;margin-bottom:4px">Unsupervised learning — finding hidden patterns</div>
+    <div style="font-size:14px;color:#0F6E56">No labels, no teacher. The AI explores raw data and discovers groups by itself — like sorting a box of mixed objects into piles.</div>
+  </div>
+  <div class="card">
+    <h3>Try it: group these animals</h3>
+    <p style="margin-bottom:10px">The AI has no names — only features like "has fur", "has wings", "swims". Click an animal to select it, then pick a group. Or just reveal how the AI groups them.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="btn" style="background:#E6F1FB;border-color:#B5D4F4;color:#0C447C" onclick="setGroup('A')">Group A</button>
+      <button class="btn" style="background:#E1F5EE;border-color:#9FE1CB;color:#085041" onclick="setGroup('B')">Group B</button>
+      <button class="btn" style="background:#FAEEDA;border-color:#FAC775;color:#633806" onclick="setGroup('C')">Group C</button>
+      <button class="btn" style="background:#FAECE7;border-color:#F5C4B3;color:#712B13" onclick="setGroup('D')">Group D</button>
+      <button class="btn" onclick="resetAnimals()">Reset</button>
+    </div>
+    <div class="animal-grid" id="animal-grid"></div>
+    <div id="animal-msg" class="msg msg-muted" style="display:none"></div>
+    <button class="btn" style="margin-top:10px;width:100%" onclick="showAIGroups()">Show how the AI grouped them</button>
+  </div>
+  <div class="card">
+    <h3>How it works</h3>
+    <div class="grid2">
+      <div><div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:3px">No labels needed</div><p>Nobody tells the AI what things are. It receives raw data and must find structure by itself.</p></div>
+      <div><div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:3px">Measuring similarity</div><p>The AI compares features — fur? wings? fins? Things that share features get grouped together.</p></div>
+      <div><div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:3px">No right answer</div><p>There's no "correct" grouping. The AI finds whatever natural clusters exist — humans then interpret them.</p></div>
+      <div><div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:3px">Real-world uses</div><p>Customer segmentation, recommendation engines, anomaly detection, compressing images.</p></div>
+    </div>
+  </div>
+</div>
+
+<div id="panel-reinforcement" class="panel">
+  <div class="hero" style="background:#FAEEDA;border-color:#FAC775">
+    <div style="font-size:17px;font-weight:500;color:#633806;margin-bottom:4px">Reinforcement learning — learning by doing</div>
+    <div style="font-size:14px;color:#854F0B">The AI learns through trial and error — getting rewards for good moves, penalties for bad ones. Like training a dog with treats.</div>
+  </div>
+  <div class="card">
+    <h3>Try it: navigate the maze</h3>
+    <p style="margin-bottom:10px">You are the AI agent. Move the robot to the star while avoiding traps. Every move costs −1 point. Your score shows what the AI is learning to optimize.</p>
+    <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+      <div style="flex:1;min-width:180px">
+        <div class="rl-grid" id="maze-grid"></div>
+      </div>
+      <div>
+        <div class="dir-wrap">
+          <div class="dir-row"><button class="dir-btn" onclick="movePlayer(0,-1)" aria-label="Up">↑</button></div>
+          <div class="dir-row">
+            <button class="dir-btn" onclick="movePlayer(-1,0)" aria-label="Left">←</button>
+            <button class="dir-btn" onclick="movePlayer(1,0)" aria-label="Right">→</button>
+          </div>
+          <div class="dir-row"><button class="dir-btn" onclick="movePlayer(0,1)" aria-label="Down">↓</button></div>
+        </div>
+        <div style="margin-top:14px">
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:3px">Score</div>
+          <div id="rl-score" style="font-size:24px;font-weight:500;color:var(--text-primary)">0</div>
+          <div class="score-bar"><div class="score-fill" id="score-fill" style="width:50%"></div></div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:2">
+            Star = +10 pts &nbsp; Trap = −5 pts &nbsp; Move = −1 pt
+          </div>
+        </div>
+        <button class="btn" style="margin-top:10px;width:100%" onclick="resetMaze()">Reset</button>
+      </div>
+    </div>
+    <div id="rl-msg" class="msg msg-muted" style="margin-top:8px">Use the arrow buttons to move your robot to the star!</div>
+  </div>
+  <div class="card">
+    <h3>How it works</h3>
+    <div class="grid2">
+      <div><div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:3px">Agent and environment</div><p>The AI (agent) takes actions in a world (environment). In this maze, you are the agent.</p></div>
+      <div><div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:3px">Rewards and penalties</div><p>Good actions earn points, bad ones lose them. The AI runs millions of trials to find the best strategy.</p></div>
+      <div><div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:3px">Trial and error</div><p>Nobody tells the AI what to do. It tries random moves at first, then learns which ones lead to more rewards.</p></div>
+      <div><div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:3px">Real-world uses</div><p>Game-playing AIs, self-driving cars, robot movement, energy optimisation in data centres.</p></div>
+    </div>
+  </div>
+</div>
+
+<div id="panel-quiz" class="panel">
+  <div class="hero" style="background:#EEEDFE;border-color:#CECBF6">
+    <div style="font-size:17px;font-weight:500;color:#3C3489;margin-bottom:4px">Quiz — test your knowledge!</div>
+    <div style="font-size:14px;color:#534AB7">6 real-world scenarios. Can you identify which type of machine learning fits each one?</div>
+  </div>
+  <div class="card" id="quiz-card">
+    <div id="quiz-dots" style="margin-bottom:10px"></div>
+    <div id="quiz-num" style="font-size:12px;color:var(--text-secondary);margin-bottom:6px"></div>
+    <h3 id="quiz-q" style="margin-bottom:14px"></h3>
+    <div id="quiz-opts"></div>
+    <div id="quiz-fb" class="msg" style="display:none"></div>
+    <button class="btn" id="quiz-next" style="display:none;margin-top:10px" onclick="nextQ()">Next question</button>
+  </div>
+  <div class="card" id="quiz-result" style="display:none">
+    <h3 style="margin-bottom:6px">Results</h3>
+    <div id="quiz-final-score" style="font-size:30px;font-weight:500;color:var(--text-primary);margin-bottom:4px"></div>
+    <div id="quiz-final-msg" style="font-size:14px;color:var(--text-secondary);margin-bottom:14px"></div>
+    <div id="quiz-breakdown"></div>
+    <button class="btn" style="margin-top:12px" onclick="resetQuiz()">Try again</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+var tabs = [
+  {id:'supervised', label:'Supervised'},
+  {id:'unsupervised', label:'Unsupervised'},
+  {id:'reinforcement', label:'Reinforcement'},
+  {id:'quiz', label:'Quiz'}
+];
+
+function switchTab(id) {
+  tabs.forEach(function(t) {
+    var p = document.getElementById('panel-' + t.id);
+    var b = document.getElementById('btn-' + t.id);
+    if (t.id === id) { p.classList.add('on'); b.classList.add('active'); }
+    else { p.classList.remove('on'); b.classList.remove('active'); }
+  });
+}
+
+var tabBar = document.getElementById('tabs');
+tabs.forEach(function(t) {
+  var b = document.createElement('button');
+  b.className = 'tab-btn';
+  b.id = 'btn-' + t.id;
+  b.textContent = t.label;
+  b.onclick = function() { switchTab(t.id); };
+  tabBar.appendChild(b);
+});
+switchTab('supervised');
+
+function revealEmails() {
+  var data = [
+    {id:'eb0', label:'Inbox', ok:true},
+    {id:'eb1', label:'Spam',  ok:false},
+    {id:'eb2', label:'Spam',  ok:false},
+    {id:'eb3', label:'Inbox', ok:true}
+  ];
+  data.forEach(function(d) {
+    var el = document.getElementById(d.id);
+    el.style.visibility = 'visible';
+    el.textContent = d.label;
+    el.style.background = d.ok ? '#EAF3DE' : '#FCEBEB';
+    el.style.color       = d.ok ? '#3B6D11' : '#A32D2D';
+  });
+  var msg = document.getElementById('email-msg');
+  msg.style.display = 'block';
+  msg.className = 'msg msg-ok';
+  msg.textContent = 'The AI spotted patterns: suspicious domains, exclamation marks, and "FREE" or "WIN" signal spam. Normal names and calm language signal inbox.';
+  document.getElementById('email-btn').style.display = 'none';
+}
+
+var animals = [
+  {e:'🐶',n:'Dog',ai:'A'}, {e:'🐱',n:'Cat',ai:'A'}, {e:'🐺',n:'Wolf',ai:'A'},
+  {e:'🦅',n:'Eagle',ai:'B'}, {e:'🦜',n:'Parrot',ai:'B'}, {e:'🐧',n:'Penguin',ai:'B'},
+  {e:'🐠',n:'Fish',ai:'C'}, {e:'🦈',n:'Shark',ai:'C'}, {e:'🐟',n:'Salmon',ai:'C'},
+  {e:'🐊',n:'Croc',ai:'D'}, {e:'🦎',n:'Lizard',ai:'D'}, {e:'🐍',n:'Snake',ai:'D'}
+];
+var animalAssign = {}, selectedIdx = null, activeGroup = null;
+var groupColors = {
+  A:{bg:'#E6F1FB',border:'#378ADD',text:'Group A'},
+  B:{bg:'#E1F5EE',border:'#1D9E75',text:'Group B'},
+  C:{bg:'#FAEEDA',border:'#BA7517',text:'Group C'},
+  D:{bg:'#FAECE7',border:'#D85A30',text:'Group D'}
+};
+
+function renderAnimals() {
+  var grid = document.getElementById('animal-grid');
+  grid.innerHTML = '';
+  animals.forEach(function(a, i) {
+    var g = animalAssign[i], c = g ? groupColors[g] : null;
+    var div = document.createElement('div');
+    div.className = 'animal-card';
+    div.style.border = selectedIdx === i ? '2px solid #534AB7' : (c ? '2px solid ' + c.border : '2px solid transparent');
+    div.style.background = c ? c.bg : 'var(--bg-secondary)';
+    div.innerHTML = '<span class="animal-emoji">' + a.e + '</span><div class="animal-name">' + a.n + '</div>' + (g ? '<div style="font-size:10px;color:var(--text-secondary)">' + c.text + '</div>' : '');
+    div.onclick = (function(idx) { return function() {
+      selectedIdx = idx;
+      if (activeGroup) { animalAssign[idx] = activeGroup; selectedIdx = null; }
+      renderAnimals();
+    }; })(i);
+    grid.appendChild(div);
+  });
+}
+
+function setGroup(g) {
+  activeGroup = g;
+  if (selectedIdx !== null) { animalAssign[selectedIdx] = g; selectedIdx = null; renderAnimals(); }
+}
+function resetAnimals() {
+  animalAssign = {}; selectedIdx = null; activeGroup = null;
+  document.getElementById('animal-msg').style.display = 'none';
+  renderAnimals();
+}
+function showAIGroups() {
+  animals.forEach(function(a, i) { animalAssign[i] = a.ai; });
+  renderAnimals();
+  var msg = document.getElementById('animal-msg');
+  msg.style.display = 'block';
+  msg.className = 'msg msg-ok';
+  msg.textContent = 'A = fur + 4 legs (mammals), B = feathers + beak (birds), C = scales + fins (fish), D = scales + legs (reptiles). No human told it these categories — it found them from shared features alone!';
+}
+renderAnimals();
+
+var maze = [
+  ['_','_','W','_','_'],
+  ['_','T','_','_','_'],
+  ['_','_','_','W','_'],
+  ['W','_','T','_','_'],
+  ['_','_','_','_','G']
+];
+var px = 0, py = 0, rlScore = 0, visited = {};
+
+function renderMaze() {
+  var grid = document.getElementById('maze-grid');
+  grid.innerHTML = '';
+  for (var r = 0; r < 5; r++) {
+    for (var c = 0; c < 5; c++) {
+      var cell = maze[r][c], isP = px===c && py===r, key = c+','+r;
+      var div = document.createElement('div');
+      div.className = 'rl-cell' + (isP ? ' player' : cell==='G' ? ' goal' : cell==='W' ? ' wall' : cell==='T' ? ' trap' : visited[key] ? ' visited' : '');
+      div.textContent = isP ? '🤖' : cell==='G' ? '⭐' : cell==='W' ? '🧱' : cell==='T' ? '💀' : visited[key] ? '·' : '';
+      grid.appendChild(div);
+    }
+  }
+  var pct = Math.max(0, Math.min(100, 50 + rlScore * 2.5));
+  var fill = document.getElementById('score-fill');
+  fill.style.width = pct + '%';
+  fill.className = 'score-fill' + (rlScore < 0 ? ' neg' : '');
+  document.getElementById('rl-score').textContent = rlScore;
+}
+
+function movePlayer(dx, dy) {
+  var nx = px+dx, ny = py+dy, msg = document.getElementById('rl-msg');
+  if (nx<0||nx>4||ny<0||ny>4) return;
+  var cell = maze[ny][nx];
+  if (cell==='W') { msg.className='msg msg-bad'; msg.textContent='That is a wall! The AI learns walls are impassable.'; return; }
+  visited[px+','+py] = true;
+  px = nx; py = ny; rlScore -= 1;
+  if (cell==='G') { rlScore+=10; renderMaze(); msg.className='msg msg-ok'; msg.textContent='Goal reached! +10 points. The AI remembers this path led to a big reward. Final score: '+rlScore; return; }
+  if (cell==='T') { rlScore-=5; msg.className='msg msg-bad'; msg.textContent='Trap hit! −5 points. The AI learns to avoid this tile next time. Score: '+rlScore; }
+  else { msg.className='msg msg-muted'; msg.textContent='Moved. −1 point per step — the AI tries to reach the goal in as few moves as possible. Score: '+rlScore; }
+  renderMaze();
+}
+
+function resetMaze() {
+  px=0; py=0; rlScore=0; visited={};
+  document.getElementById('rl-msg').className='msg msg-muted';
+  document.getElementById('rl-msg').textContent='Use the arrow buttons to move your robot to the star!';
+  renderMaze();
+}
+renderMaze();
+
+var questions = [
+  {q:'A hospital uses past patient records — each labeled "sick" or "healthy" — to train an AI that diagnoses new patients. What type of learning is this?', opts:['Supervised','Unsupervised','Reinforcement'], ans:0, exp:'The AI learned from labeled examples. That is supervised learning — a "teacher" provides the correct answers during training.'},
+  {q:'Spotify groups millions of listeners into segments like "classical fans" and "workout playlist people" — without anyone manually labelling each user. What type of learning is this?', opts:['Supervised','Unsupervised','Reinforcement'], ans:1, exp:'No labels were given. The AI found natural groups in the data by itself. That is unsupervised learning — discovering hidden structure.'},
+  {q:'AlphaGo learned to play the board game Go by playing millions of games against itself, winning or losing each one. What type of learning is this?', opts:['Supervised','Unsupervised','Reinforcement'], ans:2, exp:'AlphaGo learned through trial and error with rewards for winning and penalties for losing. Classic reinforcement learning!'},
+  {q:'Which type of machine learning requires labeled training data?', opts:['Supervised only','Unsupervised only','Reinforcement only'], ans:0, exp:'Only supervised learning needs labels. Unsupervised learning has no labels, and reinforcement learning uses reward signals instead.'},
+  {q:'A self-driving car AI learns to steer by getting a reward when it stays in its lane and a penalty when it swerves. What type of learning?', opts:['Supervised','Unsupervised','Reinforcement'], ans:2, exp:'The car is an agent in an environment, learning from rewards and penalties. That is the core of reinforcement learning.'},
+  {q:'A supermarket wants to find which products are frequently bought together — without telling the AI which groups to look for. What type of learning?', opts:['Supervised','Unsupervised','Reinforcement'], ans:1, exp:'No labels, no rewards — just raw purchase data. The AI finds patterns (bread + butter often go together) by itself. Unsupervised learning.'}
+];
+var qIdx=0, qScore=0, qLog=[];
+
+function renderQuiz() {
+  var q = questions[qIdx];
+  document.getElementById('quiz-num').textContent = 'Question '+(qIdx+1)+' of '+questions.length;
+  document.getElementById('quiz-q').textContent = q.q;
+  var dotsEl = document.getElementById('quiz-dots');
+  dotsEl.innerHTML = '';
+  questions.forEach(function(_,i) {
+    var d = document.createElement('span');
+    d.className = 'dot'+(i<qIdx?' done':i===qIdx?' active':'');
+    dotsEl.appendChild(d);
+  });
+  var optsEl = document.getElementById('quiz-opts');
+  optsEl.innerHTML = '';
+  q.opts.forEach(function(opt,i) {
+    var b = document.createElement('button');
+    b.className='quiz-opt'; b.textContent=opt;
+    b.onclick = (function(idx){ return function(){ answerQ(idx); }; })(i);
+    optsEl.appendChild(b);
+  });
+  document.getElementById('quiz-fb').style.display='none';
+  document.getElementById('quiz-next').style.display='none';
+}
+
+function answerQ(i) {
+  var q=questions[qIdx], opts=document.querySelectorAll('.quiz-opt'), correct=i===q.ans;
+  opts.forEach(function(b){ b.disabled=true; });
+  opts[i].className='quiz-opt '+(correct?'correct':'wrong');
+  if (!correct) opts[q.ans].className='quiz-opt correct';
+  if (correct) qScore++;
+  qLog.push(correct);
+  var fb=document.getElementById('quiz-fb');
+  fb.style.display='block';
+  fb.className='msg '+(correct?'msg-ok':'msg-bad');
+  fb.textContent=(correct?'Correct! ':'Not quite. ')+q.exp;
+  var nxt=document.getElementById('quiz-next');
+  nxt.style.display='inline-block';
+  nxt.textContent=qIdx<questions.length-1?'Next question':'See results';
+}
+
+function nextQ() { qIdx++; if(qIdx>=questions.length) showResult(); else renderQuiz(); }
+
+function showResult() {
+  document.getElementById('quiz-card').style.display='none';
+  document.getElementById('quiz-result').style.display='block';
+  var pct=Math.round(qScore/questions.length*100);
+  document.getElementById('quiz-final-score').textContent=qScore+' / '+questions.length+' correct';
+  var msgs=['Keep exploring — try the interactive sections again!','Good start! Review the sections you found tricky.','Nice work! You have a solid grasp of ML basics.','Excellent! You really understand the three types of ML.'];
+  document.getElementById('quiz-final-msg').textContent=msgs[pct<50?0:pct<70?1:pct<90?2:3];
+  var bd=document.getElementById('quiz-breakdown');
+  bd.innerHTML='';
+  qLog.forEach(function(ok,i) {
+    var row=document.createElement('div');
+    row.className='stat-row';
+    var lbl=document.createElement('span');
+    lbl.style.color='var(--text-secondary)'; lbl.textContent='Question '+(i+1);
+    var badge=document.createElement('span');
+    badge.className='tag';
+    badge.style.cssText=ok?'background:#EAF3DE;color:#3B6D11':'background:#FCEBEB;color:#A32D2D';
+    badge.textContent=ok?'Correct':'Incorrect';
+    row.appendChild(lbl); row.appendChild(badge); bd.appendChild(row);
+  });
+}
+
+function resetQuiz() {
+  qIdx=0; qScore=0; qLog=[];
+  document.getElementById('quiz-card').style.display='block';
+  document.getElementById('quiz-result').style.display='none';
+  renderQuiz();
+}
+renderQuiz();
+</script>
+</body>
+</html>
